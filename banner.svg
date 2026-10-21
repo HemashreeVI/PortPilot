@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-label="PortPilot banner with an animated terminal">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0B1020"/><stop offset="1" stop-color="#1A1440"/></linearGradient>
+    <pattern id="g" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#60A5FA" fill-opacity=".14"/></pattern>
+  </defs>
+  <style>
+    text{white-space:pre}
+    .t{font-family:'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif}.m{font-family:ui-monospace,Consolas,monospace}
+    .ln{opacity:0;animation:show 8s steps(1) infinite}
+    .l1{animation-delay:.4s}.l2{animation-delay:1s}.l3{animation-delay:1.4s}.l4{animation-delay:1.8s}.l5{animation-delay:2.2s}.l6{animation-delay:3.2s}.l7{animation-delay:4.2s}
+    @keyframes show{0%{opacity:1}92%{opacity:1}100%{opacity:0}}
+    .cur{animation:cur 1s steps(1) infinite}@keyframes cur{50%{opacity:0}}
+    .hl{opacity:0;animation:hl 8s ease-in-out infinite;animation-delay:3.2s}@keyframes hl{0%,10%{opacity:.25}12%,40%{opacity:0}}
+    .rad{transform-origin:200px 160px;animation:spin 6s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+  <rect width="1200" height="320" rx="22" fill="url(#bg)"/><rect width="1200" height="320" rx="22" fill="url(#g)"/>
+  <!-- compass logo -->
+  <g transform="translate(-110 -10)">
+    <circle cx="200" cy="160" r="58" fill="none" stroke="#60A5FA" stroke-opacity=".5" stroke-width="2"/>
+    <circle cx="200" cy="160" r="40" fill="none" stroke="#60A5FA" stroke-opacity=".25"/>
+    <g class="rad"><path d="M200 108 L210 160 L200 212 L190 160 Z" fill="#60A5FA"/><path d="M200 108 L210 160 L190 160 Z" fill="#F472B6"/></g>
+    <circle cx="200" cy="160" r="5" fill="#F8FAFC"/>
+  </g>
+  <text x="180" y="132" class="t" font-size="68" font-weight="700" fill="#F8FAFC" letter-spacing="-2">PortPilot</text>
+  <text x="182" y="172" class="t" font-size="19" fill="#BFDBFE">Who is using my port? Find it. Free it. One key.</text>
+  <text x="182" y="204" class="m" font-size="14" fill="#93C5FD" opacity=".8">processes · Docker containers · one-key kill</text>
+  <!-- terminal -->
+  <g class="m" font-size="13">
+    <rect x="640" y="34" width="524" height="252" rx="14" fill="#0B1020" stroke="#60A5FA" stroke-opacity=".35"/>
+    <circle cx="664" cy="56" r="6" fill="#FB7185"/><circle cx="684" cy="56" r="6" fill="#F5B841"/><circle cx="704" cy="56" r="6" fill="#34D399"/>
+    <text x="1040" y="60" fill="#64748B">PowerShell</text>
+    <g class="ln l1"><text x="664" y="96" fill="#34D399">PS&gt;</text><text x="700" y="96" fill="#F8FAFC">portpilot</text></g>
+    <g class="ln l2"><text x="664" y="126" fill="#64748B">PORT   PID     NAME            SOURCE</text></g>
+    <g class="ln l3"><text x="664" y="150" fill="#E2E8F0">5432   1840    postgres        local</text></g>
+    <rect class="hl" x="656" y="160" width="500" height="22" rx="4" fill="#F472B6"/>
+    <g class="ln l4"><text x="664" y="175" fill="#F472B6">9092   7731    kafka           🐳 docker: kafka-1</text></g>
+    <g class="ln l5"><text x="664" y="200" fill="#E2E8F0">8000   3022    uvicorn         local</text></g>
+    <g class="ln l6"><text x="664" y="234" fill="#34D399">PS&gt;</text><text x="700" y="234" fill="#F8FAFC">portpilot kill 9092</text></g>
+    <g class="ln l7"><text x="664" y="262" fill="#34D399">✔ stopped container kafka-1 · port 9092 is free</text></g>
+    <rect class="cur" x="664" y="266" width="9" height="3" fill="#F8FAFC"/>
+  </g>
+</svg>
