@@ -17,7 +17,7 @@
 <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="MIT"/>
 </p>
 
-**[🌐 Website](https://hemashreevi.github.io/portpilot/)** · **[⚡ Install](#-install)** · **[🕹️ Usage](#%EF%B8%8F-usage)** · **[🧭 How it works](#-how-it-works)** · **[🗺️ Roadmap](#%EF%B8%8F-roadmap)**
+**[🌐 Website](https://hemashreevi.github.io/PortPilot/)** · **[⚡ Install](#-install)** · **[🕹️ Usage](#%EF%B8%8F-usage)** · **[🧭 How it works](#-how-it-works)** · **[🗺️ Roadmap](#%EF%B8%8F-roadmap)**
 
 </div>
 

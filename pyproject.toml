@@ -31,7 +31,8 @@ dev = ["pytest>=7"]
 portpilot = "portpilot.__main__:main"
 
 [project.urls]
-Homepage = "https://github.com/HemashreeVI/portpilot"
+Homepage = "https://hemashreevi.github.io/PortPilot/"
+Source = "https://github.com/HemashreeVI/PortPilot"
 Issues = "https://github.com/HemashreeVI/portpilot/issues"
 
 [tool.setuptools]
