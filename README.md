@@ -152,6 +152,12 @@ portpilot
 
 > The PyPI package is **`portpilot-cli`** (the name `portpilot` belongs to a different project); the command you type is still `portpilot`.
 
+**Straight from GitHub** (no PyPI needed)
+
+```bash
+pip install git+https://github.com/HemashreeVI/PortPilot.git
+```
+
 **From source**
 
 ```bash
@@ -206,6 +212,8 @@ portpilot/
 ---
 
 <div align="center">
+
+⭐ **If PortPilot saved you a port hunt, [star the repo](https://github.com/HemashreeVI/PortPilot)! It helps other developers find it.**
 
 **Built by [Hemashree V I](https://hemashreevi.github.io)**, born from a real `localhost:9092` headache 🧭
 
