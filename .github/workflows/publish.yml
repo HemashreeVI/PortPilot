@@ -1,10 +1,12 @@
 name: Publish to PyPI
 
-# Push a version tag (git tag v0.1.0 && git push origin v0.1.0) to release.
+# Release by pushing a version tag (git tag v0.1.0 && git push origin v0.1.0),
+# by pushing the `release` branch, or with "Run workflow" in the Actions tab.
 # Uses PyPI Trusted Publishing: no API token is stored anywhere.
 on:
   push:
     tags: ["v*"]
+    branches: [release]
   workflow_dispatch:
 
 jobs:
