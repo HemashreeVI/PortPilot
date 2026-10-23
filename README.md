@@ -205,6 +205,10 @@ portpilot/
 - [ ] *Stretch:* publish to PyPI (`pip install portpilot`)
 - [ ] *Next:* Kubernetes `port-forward` and WSL awareness
 
+## 🤝 Contributing
+
+Ideas, bug reports and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and good first issues, and [CHANGELOG.md](CHANGELOG.md) for what changed in each release.
+
 ## 🧰 Built with
 
 <p align="center"><img src="https://skillicons.dev/icons?i=py,docker,powershell,bash,linux,windows&theme=dark" alt="tech"/></p>
