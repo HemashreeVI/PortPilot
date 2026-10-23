@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./banner.svg" alt="PortPilot — find and free busy ports, including Docker containers" width="100%"/>
+<img src="https://raw.githubusercontent.com/HemashreeVI/portpilot/main/banner.svg" alt="PortPilot — find and free busy ports, including Docker containers" width="100%"/>
 
 <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=500&size=19&duration=2600&pause=900&color=60A5FA&center=true&vCenter=true&width=700&height=40&lines=%E2%9D%8C+Error%3A+port+9092+is+already+in+use;%F0%9F%A7%AD+PortPilot%3A+it's+your+Kafka+container.;%E2%8C%A8%EF%B8%8F+Press+K+to+free+it.;%E2%9C%85+Done.+Back+to+building." alt="typing intro"/>
 
@@ -10,13 +10,14 @@
 <img src="https://img.shields.io/badge/works_on-Windows_·_macOS_·_Linux-60A5FA?style=for-the-badge" alt="cross-platform"/>
 </p>
 <p>
+<a href="https://pypi.org/project/portpilot-cli/"><img src="https://img.shields.io/pypi/v/portpilot-cli?style=flat-square&logo=pypi&logoColor=white&label=PyPI" alt="PyPI"/></a>
 <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"/>
 <img src="https://img.shields.io/badge/Docker-aware-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker"/>
 <img src="https://img.shields.io/badge/UI-Rich_TUI-F472B6?style=flat-square" alt="Rich"/>
 <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="MIT"/>
 </p>
 
-**[⚡ Install](#-install)** · **[🕹️ Usage](#%EF%B8%8F-usage)** · **[🧭 How it works](#-how-it-works)** · **[🗺️ Roadmap](#%EF%B8%8F-roadmap)**
+**[🌐 Website](https://hemashreevi.github.io/portpilot/)** · **[⚡ Install](#-install)** · **[🕹️ Usage](#%EF%B8%8F-usage)** · **[🧭 How it works](#-how-it-works)** · **[🗺️ Roadmap](#%EF%B8%8F-roadmap)**
 
 </div>
 
@@ -103,15 +104,15 @@ PS> portpilot kill 9092
 
 **Live view** (real output: a Redis and an nginx container plus a local Python server)
 
-<img src="./docs/tui.svg" alt="PortPilot live table" width="100%"/>
+<img src="https://raw.githubusercontent.com/HemashreeVI/portpilot/main/docs/tui.svg" alt="PortPilot live table" width="100%"/>
 
 **"Who is on 6379?"**
 
-<img src="./docs/lookup.svg" alt="portpilot 6379" width="100%"/>
+<img src="https://raw.githubusercontent.com/HemashreeVI/portpilot/main/docs/lookup.svg" alt="portpilot 6379" width="100%"/>
 
 **Free a port held by a container**
 
-<img src="./docs/kill.svg" alt="portpilot kill 8080" width="100%"/>
+<img src="https://raw.githubusercontent.com/HemashreeVI/portpilot/main/docs/kill.svg" alt="portpilot kill 8080" width="100%"/>
 
 ## 🧭 How it works
 
@@ -143,6 +144,15 @@ flowchart LR
 | **Linux** | Run with `sudo` to see other users' processes. Works with `docker-proxy` and rootless Docker. |
 
 ## ⚡ Install
+
+```bash
+pip install portpilot-cli
+portpilot
+```
+
+> The PyPI package is **`portpilot-cli`** (the name `portpilot` belongs to a different project); the command you type is still `portpilot`.
+
+**From source**
 
 ```bash
 git clone https://github.com/HemashreeVI/portpilot.git

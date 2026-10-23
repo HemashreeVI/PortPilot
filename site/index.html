@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PortPilot: find and free busy ports, including Docker</title>
+  <meta name="description" content="“Address already in use”? PortPilot shows who is on every port, including which Docker container, and frees it with one key. Windows, macOS and Linux." />
+  <meta property="og:title" content="PortPilot: find and free busy ports" />
+  <meta property="og:description" content="Who is on port 9092? PortPilot tells you, even when it's a Docker container, and frees it with one key." />
+  <meta property="og:image" content="https://hemashreevi.github.io/portpilot/img/tui.svg" />
+  <meta name="theme-color" content="#0B1020" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%230B1020' stroke='%2360A5FA' stroke-width='4'/%3E%3Cpath d='M32 12 38 32 32 52 26 32Z' fill='%23F472B6'/%3E%3Cpath d='M32 32 38 32 32 52 26 32Z' fill='%2360A5FA'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0B1020; --bg2: #120F2E; --panel: #111733; --panel2: #161D3D; --line: #26305A;
+      --text: #E2E8F0; --muted: #94A3B8; --dim: #64748B;
+      --blue: #60A5FA; --green: #34D399; --pink: #F472B6; --amber: #F5B841; --red: #FB7185; --docker: #2496ED;
+      --sans: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--bg); }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; position: relative; color: var(--text); font: 16px/1.6 var(--sans); -webkit-font-smoothing: antialiased;
+      background:
+        radial-gradient(900px 500px at 85% -10%, rgba(244,114,182,.13), transparent 70%),
+        radial-gradient(900px 600px at -10% 20%, rgba(96,165,250,.14), transparent 70%),
+        linear-gradient(180deg, var(--bg), var(--bg2) 60%, var(--bg));
+      background-color: var(--bg);
+    }
+    body::before { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: -1;
+      background-image: radial-gradient(rgba(96,165,250,.13) 1.2px, transparent 1.2px); background-size: 28px 28px; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code, kbd, .mono { font-family: var(--mono); }
+    kbd { font-size: .8em; padding: 2px 7px; border-radius: 6px; border: 1px solid var(--line); border-bottom-width: 3px; background: var(--panel2); color: var(--text); }
+    :focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; border-radius: 6px; }
+    .wrap { width: min(1160px, 100% - 32px); margin: 0 auto; }
+
+    /* nav */
+    nav { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(14px) saturate(1.3); background: rgba(11,16,32,.72); border-bottom: 1px solid rgba(38,48,90,.6); }
+    nav .wrap { display: flex; align-items: center; gap: 22px; height: 62px; }
+    .logo { display: flex; align-items: center; gap: 10px; color: var(--text); font-weight: 800; font-size: 1.1rem; letter-spacing: -.02em; }
+    .logo:hover { text-decoration: none; }
+    .logo svg { width: 30px; height: 30px; }
+    .logo .needle { transform-origin: 32px 32px; animation: sway 5s ease-in-out infinite; }
+    @keyframes sway { 0%, 100% { transform: rotate(-14deg); } 50% { transform: rotate(18deg); } }
+    nav .links { display: flex; gap: 22px; margin-left: auto; font-size: .92rem; }
+    nav .links a { color: var(--muted); }
+    nav .links a:hover { color: var(--text); text-decoration: none; }
+    .gh { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font-weight: 600; font-size: .9rem; }
+    .gh:hover { border-color: var(--blue); text-decoration: none; }
+    .gh svg { width: 18px; height: 18px; }
+
+    /* hero */
+    .hero { display: grid; grid-template-columns: 1fr 1.08fr; gap: 48px; align-items: center; padding: 72px 0 56px; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: rgba(17,23,51,.7); font: 500 .8rem var(--mono); color: var(--muted); }
+    .pill i { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); }
+    h1 { font-size: clamp(2.5rem, 5.6vw, 4.4rem); line-height: 1.02; letter-spacing: -.045em; font-weight: 900; margin: 18px 0 18px; }
+    h1 .err { font-family: var(--mono); font-weight: 700; font-size: .62em; letter-spacing: -.03em; color: var(--red); display: block; margin-bottom: 10px; }
+    h1 .grad { background: linear-gradient(90deg, var(--blue), var(--pink)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .lead { color: var(--muted); font-size: 1.15rem; max-width: 34em; margin: 0 0 28px; }
+    .lead b { color: var(--text); font-weight: 600; }
+    .install { display: flex; align-items: center; gap: 0; width: fit-content; max-width: 100%; border-radius: 14px; border: 1px solid var(--line); background: #070B18; overflow: hidden; box-shadow: 0 20px 40px -20px rgba(0,0,0,.7); }
+    .install code { padding: 14px 18px; font-size: 1rem; white-space: nowrap; overflow-x: auto; }
+    .install code::before { content: '$ '; color: var(--green); }
+    .copy { align-self: stretch; display: grid; place-items: center; padding: 0 16px; border: 0; border-left: 1px solid var(--line); background: var(--panel); color: var(--muted); cursor: pointer; font: 600 .82rem var(--sans); transition: color .2s, background .2s; min-width: 76px; }
+    .copy:hover { color: var(--text); background: var(--panel2); }
+    .copy.ok { color: var(--green); }
+    .ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px; border-radius: 12px; font-weight: 700; font-size: .95rem; transition: transform .15s, box-shadow .2s; }
+    .btn:hover { text-decoration: none; transform: translateY(-2px); }
+    .btn.primary { background: linear-gradient(90deg, var(--blue), #818CF8); color: #0B1020; box-shadow: 0 12px 30px -12px rgba(96,165,250,.8); }
+    .btn.ghost { border: 1px solid var(--line); color: var(--text); background: rgba(17,23,51,.6); }
+    .os { margin-top: 20px; color: var(--dim); font-size: .85rem; }
+
+    /* terminal */
+    .term { border-radius: 16px; border: 1px solid var(--line); background: #070B18; box-shadow: 0 40px 80px -30px rgba(0,0,0,.85), 0 0 0 1px rgba(96,165,250,.05), 0 0 80px -30px rgba(96,165,250,.35); overflow: hidden; }
+    .bar { display: flex; align-items: center; gap: 7px; padding: 11px 14px; background: #0E1430; border-bottom: 1px solid var(--line); }
+    .bar i { width: 11px; height: 11px; border-radius: 50%; background: #FB7185; } .bar i:nth-child(2) { background: #F5B841; } .bar i:nth-child(3) { background: #34D399; }
+    .bar span { margin-left: 10px; font: .78rem var(--mono); color: var(--dim); }
+    .screen { font: 12.5px/1.62 var(--mono); padding: 16px 18px; height: 360px; overflow: hidden; white-space: pre; color: var(--text); }
+    .screen .p { color: var(--green); } .screen .r { color: var(--red); } .screen .b { color: var(--blue); } .screen .d { color: var(--dim); }
+    .screen .a { color: var(--amber); } .screen .g { color: var(--green); } .screen .k { color: var(--docker); font-weight: 700; } .screen .w { font-weight: 700; }
+    .caret { display: inline-block; width: .6em; height: 1.1em; background: var(--text); vertical-align: -2px; animation: blink 1s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* sections */
+    section { padding: 64px 0; }
+    .kicker { font: 600 .78rem var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--pink); margin: 0 0 10px; }
+    h2 { font-size: clamp(1.9rem, 3.6vw, 2.8rem); letter-spacing: -.035em; line-height: 1.1; margin: 0 0 14px; font-weight: 800; }
+    .sub { color: var(--muted); max-width: 42em; margin: 0 0 34px; font-size: 1.05rem; }
+
+    .vs { display: grid; grid-template-columns: 1fr auto 1fr; gap: 22px; align-items: stretch; }
+    .card { border-radius: 18px; border: 1px solid var(--line); background: linear-gradient(160deg, rgba(22,29,61,.9), rgba(17,23,51,.75)); padding: 24px; }
+    .card h3 { margin: 0 0 14px; font-size: 1.1rem; }
+    .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; font: .9rem var(--mono); }
+    .old li { color: var(--muted); display: flex; gap: 10px; }
+    .old li::before { content: '✗'; color: var(--red); }
+    .old .card { opacity: .9; }
+    .new li { display: flex; gap: 10px; }
+    .new li::before { content: '✓'; color: var(--green); }
+    .arrow { display: grid; place-items: center; color: var(--dim); font-size: 1.6rem; }
+    .time { margin-top: 16px; font: 600 .85rem var(--sans); }
+    .old .time { color: var(--red); } .new .time { color: var(--green); }
+
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .feat { position: relative; overflow: hidden; transition: transform .25s, border-color .25s; }
+    .feat:hover { transform: translateY(-4px); border-color: var(--blue); }
+    .feat .ico { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 1.3rem; margin-bottom: 14px; background: rgba(96,165,250,.12); border: 1px solid rgba(96,165,250,.3); }
+    .feat p { margin: 0; color: var(--muted); font-size: .95rem; }
+    .feat code { color: var(--text); font-size: .88em; }
+
+    .tabs { display: flex; gap: 6px; padding: 5px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel); width: fit-content; margin-bottom: 18px; flex-wrap: wrap; }
+    .tab { border: 0; background: transparent; color: var(--muted); font: 600 .9rem var(--sans); padding: 8px 16px; border-radius: 10px; cursor: pointer; }
+    .tab[aria-selected='true'] { background: var(--panel2); color: var(--text); box-shadow: inset 0 0 0 1px var(--line); }
+    .shot { border-radius: 16px; border: 1px solid var(--line); background: #0d0d0d; padding: 8px; }
+    .shot img { width: 100%; display: block; border-radius: 10px; }
+    .shot figcaption { color: var(--dim); font-size: .85rem; padding: 10px 6px 4px; }
+
+    .two { display: grid; grid-template-columns: 1.1fr .9fr; gap: 20px; align-items: start; }
+    .cmds { display: grid; gap: 10px; }
+    .cmd { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; border-radius: 12px; border: 1px solid var(--line); background: #070B18; overflow: hidden; }
+    .cmd code { padding: 12px 16px; white-space: nowrap; overflow-x: auto; font-size: .92rem; }
+    .cmd code::before { content: '$ '; color: var(--green); }
+    .cmd span { grid-column: 1 / -1; padding: 0 16px 12px; color: var(--muted); font-size: .88rem; margin-top: -6px; }
+    .cmd .copy { grid-row: 1; grid-column: 2; min-width: 64px; }
+    table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+    td { padding: 11px 10px; border-bottom: 1px solid var(--line); }
+    td:first-child { white-space: nowrap; width: 1%; }
+
+    .safety li { display: flex; gap: 12px; align-items: flex-start; }
+    .safety li::before { content: '🛡'; }
+    .safety { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; color: var(--muted); }
+    .safety b { color: var(--text); }
+
+    .flow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font: .9rem var(--mono); }
+    .node { padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); }
+    .node.k { border-color: rgba(36,150,237,.6); } .node.e { border-color: rgba(52,211,153,.6); }
+    .flow .to { color: var(--dim); }
+
+    .cta { text-align: center; padding: 72px 0 90px; }
+    .cta h2 { font-size: clamp(2.2rem, 5vw, 3.6rem); }
+    .cta .install { margin: 26px auto 0; }
+    footer { border-top: 1px solid var(--line); padding: 28px 0 40px; color: var(--dim); font-size: .9rem; }
+    footer .wrap { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
+    footer .sp { flex: 1; }
+
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
+    .reveal.in { opacity: 1; transform: none; }
+
+    @media (max-width: 920px) {
+      .hero, .two { grid-template-columns: 1fr; }
+      .hero { padding-top: 44px; }
+      .grid { grid-template-columns: 1fr 1fr; }
+      .vs { grid-template-columns: 1fr; } .arrow { transform: rotate(90deg); }
+      nav .links { display: none; }
+      nav .gh { margin-left: auto; }
+    }
+    @media (max-width: 560px) {
+      .grid { grid-template-columns: 1fr; }
+      .screen { font-size: 10.5px; height: 300px; padding: 12px; overflow-x: auto; }
+      .install code { font-size: .88rem; padding: 12px 14px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+      .reveal { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="wrap">
+      <a class="logo" href="#" aria-label="PortPilot home">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="28" fill="#0B1020" stroke="#60A5FA" stroke-width="4"/><g class="needle"><path d="M32 12 38 32 32 52 26 32Z" fill="#F472B6"/><path d="M32 32 38 32 32 52 26 32Z" fill="#60A5FA"/></g><circle cx="32" cy="32" r="3" fill="#E2E8F0"/></svg>
+        PortPilot
+      </a>
+      <div class="links"><a href="#why">Why</a><a href="#features">Features</a><a href="#see">See it</a><a href="#install">Install</a></div>
+      <a class="gh" href="https://github.com/HemashreeVI/portpilot"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+    </div>
+  </nav>
+
+  <header class="wrap hero">
+    <div>
+      <span class="pill"><i></i>v0.1.0 · Windows · macOS · Linux</span>
+      <h1><span class="err">Address already in use?</span>Find it. <span class="grad">Free it.</span> One key.</h1>
+      <p class="lead">PortPilot shows <b>who is on every port</b>, including <b>which Docker container</b> is behind it, and frees the port when you press <kbd>K</kbd>. No more <code>netstat</code>, copying PIDs or hunting through Task Manager.</p>
+      <div class="install"><code id="pip">pip install portpilot-cli</code><button class="copy" data-copy="pip install portpilot-cli">Copy</button></div>
+      <div class="ctas">
+        <a class="btn primary" href="#install">Get started →</a>
+        <a class="btn ghost" href="https://github.com/HemashreeVI/portpilot">★ Star on GitHub</a>
+      </div>
+      <p class="os">Python 3.10+ · free and open source (MIT) · Docker optional</p>
+    </div>
+    <div class="term" aria-label="Animated terminal demo of PortPilot">
+      <div class="bar"><i></i><i></i><i></i><span>PowerShell</span></div>
+      <div class="screen" id="screen" aria-live="off"></div>
+    </div>
+  </header>
+
+  <main>
+    <section id="why" class="wrap reveal">
+      <p class="kicker">the problem</p>
+      <h2>You know this hunt.</h2>
+      <p class="sub">Your app won't start because something is already on its port. Usually it's a container you forgot about.</p>
+      <div class="vs">
+        <div class="card old">
+          <h3>Without PortPilot</h3>
+          <ul class="steps">
+            <li>netstat -ano | findstr 9092</li>
+            <li>copy PID 7731</li>
+            <li>open Task Manager… nothing there?</li>
+            <li>it's com.docker.backend. Which container?</li>
+            <li>docker ps, find the port, docker stop</li>
+          </ul>
+          <p class="time">5 tools, 5 minutes</p>
+        </div>
+        <div class="arrow" aria-hidden="true">→</div>
+        <div class="card new">
+          <h3>With PortPilot</h3>
+          <ul class="steps">
+            <li>portpilot</li>
+            <li>9092 · 🐳 docker: kafka-1</li>
+            <li>press K, then y</li>
+            <li>✔ port 9092 is free</li>
+          </ul>
+          <p class="time">1 screen, 5 seconds</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="wrap">
+      <div class="reveal">
+        <p class="kicker">features</p>
+        <h2>Everything about a port, in one place.</h2>
+        <p class="sub">Port, PID, process, container, user, uptime and what the port is usually for, all in a live table.</p>
+      </div>
+      <div class="grid">
+        <article class="card feat reveal"><div class="ico">🔎</div><h3>See every port</h3><p>A live table of every listening port with PID, name, user, uptime and bind address. Refreshes every 2 s.</p></article>
+        <article class="card feat reveal"><div class="ico">🐳</div><h3>Docker-aware</h3><p>Shows <b>which container</b> owns a port (<code>docker: kafka-1</code>), not just <code>docker-proxy</code> or <code>com.docker.backend</code>.</p></article>
+        <article class="card feat reveal"><div class="ico">⌨️</div><h3>One-key free</h3><p>Select a row and press <kbd>K</kbd>. Containers get <code>docker stop</code>; processes are asked to exit politely first.</p></article>
+        <article class="card feat reveal"><div class="ico">🎯</div><h3>Ask about one port</h3><p><code>portpilot 9092</code> answers "who is on 9092?" with the full command line and the container image.</p></article>
+        <article class="card feat reveal"><div class="ico">🛡️</div><h3>Safe by default</h3><p>Always asks first, and refuses to touch system processes like <code>svchost.exe</code>, <code>launchd</code> or <code>sshd</code>.</p></article>
+        <article class="card feat reveal"><div class="ico">🧩</div><h3>Script-friendly</h3><p><code>--json</code> output, and exit codes that answer "is this port busy?": <code>portpilot 5432 || docker compose up -d</code></p></article>
+      </div>
+    </section>
+
+    <section id="see" class="wrap reveal">
+      <p class="kicker">real output</p>
+      <h2>See it run.</h2>
+      <p class="sub">Captured from PortPilot itself with a Redis and an nginx container and a local Python server.</p>
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" aria-selected="true" data-shot="tui">Live table</button>
+        <button class="tab" role="tab" aria-selected="false" data-shot="lookup">portpilot 6379</button>
+        <button class="tab" role="tab" aria-selected="false" data-shot="kill">portpilot kill 8080</button>
+      </div>
+      <figure class="shot"><img id="shot" src="img/tui.svg" alt="PortPilot live table showing ports 6379, 8000 and 8080" /><figcaption id="cap">Arrows select · K frees the port · D shows Docker only · / filters · Q quits</figcaption></figure>
+    </section>
+
+    <section id="install" class="wrap reveal">
+      <p class="kicker">install &amp; use</p>
+      <h2>Up and running in 10 seconds.</h2>
+      <p class="sub">Works in PowerShell, Windows Terminal, macOS Terminal and any Linux shell.</p>
+      <div class="two">
+        <div class="cmds">
+          <div class="cmd"><code>pip install portpilot-cli</code><button class="copy" data-copy="pip install portpilot-cli">Copy</button><span>install from PyPI (the command is still <b>portpilot</b>)</span></div>
+          <div class="cmd"><code>portpilot</code><button class="copy" data-copy="portpilot">Copy</button><span>live table of every listening port</span></div>
+          <div class="cmd"><code>portpilot 9092</code><button class="copy" data-copy="portpilot 9092">Copy</button><span>who is using port 9092?</span></div>
+          <div class="cmd"><code>portpilot kill 9092</code><button class="copy" data-copy="portpilot kill 9092">Copy</button><span>free port 9092 (asks first)</span></div>
+          <div class="cmd"><code>portpilot --docker</code><button class="copy" data-copy="portpilot --docker">Copy</button><span>only ports owned by Docker containers</span></div>
+          <div class="cmd"><code>portpilot --json</code><button class="copy" data-copy="portpilot --json">Copy</button><span>machine-readable output for scripts</span></div>
+        </div>
+        <div class="card">
+          <h3>Keys in the live view</h3>
+          <table>
+            <tr><td><kbd>↑</kbd> <kbd>↓</kbd></td><td>select a row</td></tr>
+            <tr><td><kbd>K</kbd></td><td>free the selected port (asks y/N)</td></tr>
+            <tr><td><kbd>D</kbd></td><td>toggle Docker only</td></tr>
+            <tr><td><kbd>/</kbd></td><td>filter by port, name or container</td></tr>
+            <tr><td><kbd>R</kbd></td><td>refresh now</td></tr>
+            <tr><td><kbd>Q</kbd></td><td>quit</td></tr>
+          </table>
+          <p class="os" style="margin-top:16px">Tip: on macOS and Linux run <code>sudo portpilot</code> to see other users' processes; on Windows, an Administrator terminal shows system services.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap reveal">
+      <p class="kicker">how it works</p>
+      <h2>Small, honest and careful.</h2>
+      <div class="two">
+        <div class="card">
+          <div class="flow">
+            <span class="node">psutil: listening sockets</span><span class="to">→</span><span class="node">port → PID → process</span>
+          </div>
+          <div class="flow" style="margin-top:10px">
+            <span class="node k">docker ps: published ports</span><span class="to">→</span><span class="node k">port → container</span>
+          </div>
+          <div class="flow" style="margin-top:10px">
+            <span class="node">Rich table</span><span class="to">→ K →</span><span class="node e">docker stop</span><span class="to">or</span><span class="node e">terminate process</span>
+          </div>
+          <p class="os" style="margin-top:18px">No daemon, no background service, no telemetry. It reads the OS socket table, asks Docker, draws a table and exits.</p>
+        </div>
+        <ul class="safety card">
+          <li><span><b>Asks before stopping anything</b> (unless you pass <code>-y</code>).</span></li>
+          <li><span><b>Never touches core OS processes</b> such as PID 0/1/4, <code>System</code>, <code>lsass.exe</code>, <code>launchd</code>, <code>systemd</code> and <code>sshd</code>.</span></li>
+          <li><span><b>Polite first:</b> terminate, then force-kill only if the process ignores it for 3 s.</span></li>
+          <li><span><b>PID-reuse guard:</b> re-checks the process start time right before acting.</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="wrap cta reveal">
+      <h2>Stop hunting.<br /><span class="grad" style="background:linear-gradient(90deg,var(--blue),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent">Start building.</span></h2>
+      <div class="install"><code>pip install portpilot-cli</code><button class="copy" data-copy="pip install portpilot-cli">Copy</button></div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>Built by <a href="https://hemashreevi.github.io">Hemashree V I</a>, born from a real <code>localhost:9092</code> headache 🧭</span>
+      <span class="sp"></span>
+      <a href="https://github.com/HemashreeVI/portpilot">GitHub</a>
+      <a href="https://pypi.org/project/portpilot-cli/">PyPI</a>
+      <a href="https://www.linkedin.com/in/hema-shree-373622289">LinkedIn</a>
+      <span>MIT License</span>
+    </div>
+  </footer>
+
+  <script>
+    // Copy buttons
+    document.querySelectorAll('.copy').forEach((b) => b.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = 'Copied ✓'; b.classList.add('ok'); }
+      catch { b.textContent = 'Select'; }
+      setTimeout(() => { b.textContent = 'Copy'; b.classList.remove('ok'); }, 1600);
+    }));
+
+    // Screenshot tabs
+    const caps = {
+      tui: 'Arrows select · K frees the port · D shows Docker only · / filters · Q quits',
+      lookup: '“Who is on 6379?” traced through docker-proxy to the redis-cache container',
+      kill: 'Freeing a port held by a container: one confirmation, then docker stop',
+    };
+    document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach((x) => x.setAttribute('aria-selected', x === t));
+      document.getElementById('shot').src = `img/${t.dataset.shot}.svg`;
+      document.getElementById('shot').alt = t.textContent;
+      document.getElementById('cap').textContent = caps[t.dataset.shot];
+    }));
+
+    // Scroll reveal
+    const io = new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && (e.target.classList.add('in'), io.unobserve(e.target))), { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+    // Animated terminal: the real-world story in four commands
+    const screen = document.getElementById('screen');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    const S = [
+      { cmd: 'python app.py' },
+      { out: '<span class="r">OSError: [Errno 98] Address already in use: (\'0.0.0.0\', 9092)</span>', wait: 1400 },
+      { cmd: 'portpilot' },
+      { out: '<span class="b w"> PORT    PID  NAME      SOURCE                 UPTIME  HINT</span>\n<span class="d"> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>\n <span class="w">5432</span>   1840  postgres  <span class="d">local</span>                  2h 14m  <span class="a">PostgreSQL</span>\n <span class="w">8000</span>   3022  uvicorn   <span class="d">local</span>                     12m  <span class="a">Django / uvicorn</span>\n <span class="w">9092</span>   7731  kafka     <span class="k">🐳 docker: kafka-1</span>      3d 2h  <span class="a">Kafka</span>', wait: 1900 },
+      { cmd: 'portpilot kill 9092' },
+      { out: '<span class="a">?</span> Port 9092 belongs to container "kafka-1" (bitnami/kafka). Stop it? (y/N) <span class="w">y</span>', wait: 900 },
+      { out: '<span class="g">✔ stopped container kafka-1 · port 9092 is free</span>', wait: 1000 },
+      { cmd: 'python app.py' },
+      { out: '<span class="g">INFO  listening on 0.0.0.0:9092</span> <span class="d">· back to building</span>', wait: 3200 },
+    ];
+    const prompt = '<span class="p">PS&gt;</span> ';
+    let html = '';
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    const paint = (extra = '') => { screen.innerHTML = html + extra; screen.scrollTop = screen.scrollHeight; };
+    async function play() {
+      if (reduce) {
+        html = S.map((s) => (s.cmd ? prompt + esc(s.cmd) : s.out)).join('\n');
+        return paint();
+      }
+      for (;;) {
+        html = '';
+        for (const s of S) {
+          if (s.cmd) {
+            let typed = '';
+            for (const ch of s.cmd) { typed += ch; paint(prompt + esc(typed) + '<span class="caret"></span>'); await sleep(45 + Math.random() * 55); }
+            await sleep(260);
+            html += prompt + esc(s.cmd) + '\n';
+            paint();
+          } else {
+            await sleep(220);
+            html += s.out + '\n\n';
+            paint(prompt + '<span class="caret"></span>');
+            await sleep(s.wait);
+          }
+        }
+        await sleep(800);
+      }
+    }
+    play();
+  </script>
+</body>
+</html>

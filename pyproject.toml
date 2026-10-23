@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "portpilot"
+name = "portpilot-cli"
 version = "0.1.0"
 description = "Find and free busy ports, including Docker containers, from one terminal screen."
 readme = "README.md"
